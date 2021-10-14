@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import pg from "pg";
 
+import { capitalizeFirstLetter, isNewNameAvailable } from "./src/functions.js";
+
 const server = express();
 server.use(express.json());
 server.use(cors());
@@ -17,11 +19,28 @@ const connection = new Pool({
 });
 
 server.get("/categories", (req, resp) => {
-    const promise = connection.query('SELECT * FROM categories')
+    connection.query("SELECT * FROM categories;")
     .then( result => {
         resp.send(result.rows);
-    } )
+    })
 })
+
+server.post("/categories", (req, resp) => {
+    const newName = req.body.name
+    if (!newName) {
+        return resp.sendStatus(400);
+    }
+    connection.query("SELECT * FROM categories;")
+    .then( result => {
+        const savedCategories = result.rows;
+        if(!isNewNameAvailable(newName, savedCategories)) {
+            return resp.sendStatus(409);
+        }
+        connection.query(`INSERT INTO categories (name) VALUES ($1);`,[capitalizeFirstLetter(newName)]);
+        resp.sendStatus(201);
+    })
+})
+
 
 
 server.listen(4000, () => {
