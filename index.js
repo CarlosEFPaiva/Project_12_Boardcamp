@@ -2,14 +2,14 @@ import express from "express";
 import cors from "cors";
 import pg from "pg";
 
-import { capitalizeFirstLetter, isNewNameAvailable } from "./src/functions.js";
+import { getCategories, postCategories } from "./src/Categories/categoriesFunctions.js";
+import { postGames } from "./src/Games/gamesFunctions.js";
 
 const server = express();
 server.use(express.json());
 server.use(cors());
 
 const { Pool } = pg;
-
 const connection = new Pool({
     user: 'bootcamp_role',
     password: 'senha_super_hiper_ultra_secreta_do_role_do_bootcamp',
@@ -18,29 +18,18 @@ const connection = new Pool({
     database: 'boardcamp'
 });
 
-server.get("/categories", (req, resp) => {
-    connection.query("SELECT * FROM categories;")
+server.get("/categories", (req, resp) => getCategories(connection, resp) );
+
+server.post("/categories", (req, resp) => postCategories(connection, req, resp) );
+
+server.get("/games", (req, resp) => {
+    connection.query("SELECT * FROM games;")
     .then( result => {
         resp.send(result.rows);
     })
 })
 
-server.post("/categories", (req, resp) => {
-    const newName = req.body.name
-    if (!newName) {
-        return resp.sendStatus(400);
-    }
-    connection.query("SELECT * FROM categories;")
-    .then( result => {
-        const savedCategories = result.rows;
-        if(!isNewNameAvailable(newName, savedCategories)) {
-            return resp.sendStatus(409);
-        }
-        connection.query(`INSERT INTO categories (name) VALUES ($1);`,[capitalizeFirstLetter(newName)]);
-        resp.sendStatus(201);
-    })
-})
-
+server.post("/games", (req, resp) => postGames(connection, req, resp) )
 
 
 server.listen(4000, () => {

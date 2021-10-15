@@ -1,6 +1,10 @@
-function capitalizeFirstLetter(title) {
-    const lowerCaseTitle = title.toLowerCase();
-    return title[0].toUpperCase() + lowerCaseTitle.substring(1);
+function capitalizeFirstLetters(title) {
+    const arrayOfWords = title.split(" ");
+    const capitalizedArray = arrayOfWords.map( word => {
+        const lowerCaseWord = word.toLowerCase();
+        return lowerCaseWord[0].toUpperCase() + lowerCaseWord.substring(1);
+    })
+    return capitalizedArray.join(" ");
 }
 
 function clearSpecialCharacters(title) {
@@ -16,14 +20,14 @@ function removeSpacesAndHyphens(name) {
 function formatNameForComparing(name) {
     let formattedName = removeSpacesAndHyphens(name);
     formattedName = clearSpecialCharacters(formattedName);
-    formattedName = capitalizeFirstLetter(formattedName);
+    formattedName = capitalizeFirstLetters(formattedName);
     return formattedName;
 }
 
-function isNewNameAvailable(newName, arrayOfCategories) {
+function isNewNameAvailable(newName, arrayOfItems) {
     let availability = true;
     const formmatedNewName = formatNameForComparing(newName);
-    arrayOfCategories.forEach( ({name:savedName}) => {
+    arrayOfItems.forEach( ({name:savedName}) => {
         if (formmatedNewName === formatNameForComparing(savedName)) {
             availability = false;
         }
@@ -32,6 +36,6 @@ function isNewNameAvailable(newName, arrayOfCategories) {
 }
 
 export {
-    capitalizeFirstLetter,
+    capitalizeFirstLetters,
     isNewNameAvailable,
 }
