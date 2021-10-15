@@ -1,27 +1,24 @@
-import { isNewNameAvailable, capitalizeFirstLetters } from "../sharedFunctions.js";
+import { getCategories, isNewNameAvailable, insertNewCategory } from "./auxiliarFunctions.js"
 
-async function getCategories(connection, resp) {
+async function sendCategories(connection, req, resp) {
     try {
-        const categories = await connection.query("SELECT * FROM categories;");
-        resp.send(categories.rows); 
-    } catch {
+        resp.send(await getCategories(connection));
+    } catch (error) {
+        console.log(error);
         resp.sendStatus(500);
     }
-    
 }
 
 async function postCategories(connection, req, resp) {
-    const newName = req.body.name
+    const newName = req.body.name;
     if (!newName) {
         return resp.sendStatus(400);
     }
     try {
-        const categories = await connection.query("SELECT * FROM categories;")
-        const savedCategories = categories.rows;
-        if(!isNewNameAvailable(newName, savedCategories)) {
+        if ( !(await isNewNameAvailable(connection, newName)) ) {
             return resp.sendStatus(409);
         }
-        await connection.query(`INSERT INTO categories (name) VALUES ($1);`,[capitalizeFirstLetters(newName)]);
+        await insertNewCategory(connection, newName);
         resp.sendStatus(201);
     } catch {
         resp.sendStatus(500);
@@ -30,6 +27,6 @@ async function postCategories(connection, req, resp) {
 }
 
 export {
-    getCategories,
+    sendCategories,
     postCategories,
 }

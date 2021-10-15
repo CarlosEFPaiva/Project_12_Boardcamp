@@ -13,11 +13,26 @@ function areRawInputsValid( name, image, stockTotal, categoryId, pricePerDay ) {
     return !!URLpattern.test(image) && !!image.match(/\.(jpeg|jpg|gif|png)$/);
 }
 
-function getCategoryById(categoryId, arrayOfCategories) {
-    return arrayOfCategories.find( ({id:savedId}) => categoryId === savedId );
+async function getGames(connection, {id, name}) {
+    let queryText = "SELECT * FROM games";
+    const atributeValues = [];
+    if (id || name) {
+        queryText += " WHERE"
+        if (id) {
+            queryText += " id = $1";
+            atributeValues.push(id);
+        }
+        if (name) {
+            queryText += ` substring(lower(name), 1, ${name.length}) = $${atributeValues.length + 1}`;
+            atributeValues.push(name.toLowerCase());
+        }
+    }
+    queryText += ";"
+    const games = await connection.query(queryText, atributeValues);
+    return games.rows;
 }
 
 export {
     areRawInputsValid,
-    getCategoryById,
+    getGames,
 }

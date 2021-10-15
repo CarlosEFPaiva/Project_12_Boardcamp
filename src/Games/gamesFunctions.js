@@ -1,5 +1,15 @@
-import { areRawInputsValid, getCategoryById } from "./auxiliarFunctions.js";
+import { areRawInputsValid, getGames } from "./auxiliarFunctions.js";
 import { isNewNameAvailable, capitalizeFirstLetters} from "../sharedFunctions.js";
+
+async function sendGames(connection, req, resp) {
+   const requiredName = req.query.name;
+    try {
+        resp.send(await getGames(connection, {name: requiredName}));
+    } catch (error) {
+        console.log(error);
+        resp.sendStatus(500);
+    }
+}
 
 async function postGames(connection, req, resp) {
     const {
@@ -13,7 +23,7 @@ async function postGames(connection, req, resp) {
     if (!areRawInputsValid( name, image, stockTotal, categoryId, pricePerDay )) {
         return resp.sendStatus(400);
     }
-     try {
+    try {
         const categories = await connection.query("SELECT * FROM categories;");
         const savedCategories = categories.rows;
         const categoryName = getCategoryById(categoryId, savedCategories);
@@ -34,5 +44,6 @@ async function postGames(connection, req, resp) {
 }
 
 export {
+    sendGames,
     postGames,
 }

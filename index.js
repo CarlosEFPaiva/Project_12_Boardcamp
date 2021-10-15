@@ -2,8 +2,8 @@ import express from "express";
 import cors from "cors";
 import pg from "pg";
 
-import { getCategories, postCategories } from "./src/Categories/categoriesFunctions.js";
-import { postGames } from "./src/Games/gamesFunctions.js";
+import { sendCategories, postCategories } from "./src/Categories/categoriesFunctions.js";
+import { sendGames, postGames } from "./src/Games/gamesFunctions.js";
 
 const server = express();
 server.use(express.json());
@@ -18,16 +18,11 @@ const connection = new Pool({
     database: 'boardcamp'
 });
 
-server.get("/categories", (req, resp) => getCategories(connection, resp) );
+server.get("/categories", (req, resp) => sendCategories(connection, req, resp) );
 
 server.post("/categories", (req, resp) => postCategories(connection, req, resp) );
 
-server.get("/games", (req, resp) => {
-    connection.query("SELECT * FROM games;")
-    .then( result => {
-        resp.send(result.rows);
-    })
-})
+server.get("/games?:name", (req, resp) => sendGames(connection, req, resp))
 
 server.post("/games", (req, resp) => postGames(connection, req, resp) )
 
