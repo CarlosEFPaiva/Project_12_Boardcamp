@@ -1,4 +1,4 @@
-import { areRawInputsValid, getGames } from "./auxiliarFunctions.js";
+import { areInputsValid, getGames } from "./auxiliarFunctions.js";
 import { isNewNameAvailable, capitalizeFirstLetters} from "../sharedFunctions.js";
 
 async function sendGames(connection, req, resp) {
@@ -20,19 +20,11 @@ async function postGames(connection, req, resp) {
         pricePerDay
     } = req.body;
 
-    if (!areRawInputsValid( name, image, stockTotal, categoryId, pricePerDay )) {
-        return resp.sendStatus(400);
-    }
     try {
-        const categories = await connection.query("SELECT * FROM categories;");
-        const savedCategories = categories.rows;
-        const categoryName = getCategoryById(categoryId, savedCategories);
-        if (!categoryName) {
+        if (!(await areInputsValid(connection, req))) {
             return resp.sendStatus(400);
-        };
-        const games = await connection.query("SELECT * FROM games;");
-        const savedGames = games.rows;
-        if (!isNewNameAvailable(name, savedGames)) {
+        }
+        if (!(await isNewNameAvailable(connection, name, getGames))) {
             return resp.sendStatus(409);
         };
         await connection.query(`INSERT INTO games ("name", "image", "stockTotal", "categoryId", "pricePerDay")` +

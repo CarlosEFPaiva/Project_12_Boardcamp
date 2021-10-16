@@ -24,15 +24,8 @@ function formatNameForComparing(name) {
     return formattedName;
 }
 
-function isNewNameAvailable(newName, arrayOfItems) {
-    let availability = true;
-    const formmatedNewName = formatNameForComparing(newName);
-    arrayOfItems.forEach( ({name:savedName}) => {
-        if (formmatedNewName === formatNameForComparing(savedName)) {
-            availability = false;
-        }
-    })
-    return availability;
+async function isNewNameAvailable(connection, newName, getFunction) {
+    return (await getFunction( connection, {name:newName} )).length === 0;
 }
 
 export {

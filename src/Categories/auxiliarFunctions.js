@@ -1,11 +1,23 @@
 import { capitalizeFirstLetters } from "../sharedFunctions.js"
 
-async function getCategories(connection, requiredId) {
+async function getCategories(connection, requiredData) {
+    let id,name;
+    if (requiredData) {
+        id = requiredData.id;
+        name = requiredData.name;
+    }
     let queryText = "SELECT * FROM categories";
-    const atributeValues = []
-    if (requiredId) {
-        queryText += " WHERE id = $1";
-        atributeValues.push(requiredId);
+    const atributeValues = [];
+    if (id || name) {
+        queryText += " WHERE ";
+        if (id) {
+            queryText += "id = $1";
+            atributeValues.push(id);
+        }
+        if (name) {
+            queryText += `name iLIKE $${atributeValues.length + 1}`;
+            atributeValues.push(name);
+        }
     }
     queryText += ";";
     const categories = await connection.query(queryText, atributeValues);
@@ -13,7 +25,7 @@ async function getCategories(connection, requiredId) {
 }
 
 async function isNewNameAvailable(connection, newName) {
-    return (await getCategories( connection, {name:capitalizeFirstLetters(newName)} )).length === 0;
+    return (await getCategories( connection, {name:newName} )).length === 0;
 }
 
 async function insertNewCategory(connection, newName) {
@@ -23,6 +35,5 @@ async function insertNewCategory(connection, newName) {
 
 export {
     getCategories,
-    isNewNameAvailable,
     insertNewCategory,
 }

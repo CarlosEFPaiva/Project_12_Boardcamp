@@ -1,3 +1,33 @@
+import { getCategories } from "../Categories/auxiliarFunctions.js";
+
+async function getGames(connection, requiredData) {
+    let id,name;
+    if (requiredData) {
+        id = requiredData.id;
+        name = requiredData.name;
+    }
+    let queryText = `
+    SELECT 
+    games.*,
+    categories.name AS "categoryName" 
+    FROM games JOIN categories ON games."categoryId" = categories.id`;
+    const atributeValues = [];
+    if (id || name) {
+        queryText += " WHERE"
+        if (id) {
+            queryText += " id = $1";
+            atributeValues.push(id);
+        }
+        if (name) {
+            queryText += ` games.name iLIKE $${atributeValues.length + 1}`;
+            atributeValues.push(name + "%");
+        }
+    }
+    queryText += ";"
+    const games = await connection.query(queryText, atributeValues);
+    return games.rows;
+}
+
 function areRawInputsValid( name, image, stockTotal, categoryId, pricePerDay ) {
     const biggerThanZero = (value) => { return (!isNaN(Number(value)) && Number(value) > 0) }
     if ( !name || !image || !biggerThanZero(stockTotal) || !biggerThanZero(pricePerDay) || !biggerThanZero(categoryId)) {
@@ -13,26 +43,32 @@ function areRawInputsValid( name, image, stockTotal, categoryId, pricePerDay ) {
     return !!URLpattern.test(image) && !!image.match(/\.(jpeg|jpg|gif|png)$/);
 }
 
-async function getGames(connection, {id, name}) {
-    let queryText = "SELECT * FROM games";
-    const atributeValues = [];
-    if (id || name) {
-        queryText += " WHERE"
-        if (id) {
-            queryText += " id = $1";
-            atributeValues.push(id);
-        }
-        if (name) {
-            queryText += ` substring(lower(name), 1, ${name.length}) = $${atributeValues.length + 1}`;
-            atributeValues.push(name.toLowerCase());
-        }
+async function isCategoryIdValid(connection, categoryId) {
+    const teste = await getCategories(connection, {id: categoryId});
+    return (await getCategories(connection, {id: categoryId})).length !== 0;
+}
+
+async function areInputsValid(connection, req) {
+    const {
+        name,
+        image,
+        stockTotal,
+        categoryId,
+        pricePerDay
+    } = req.body;
+
+    if (!areRawInputsValid( name, image, stockTotal, categoryId, pricePerDay )) {
+        console.log("AQUI!")
+        return false;
     }
-    queryText += ";"
-    const games = await connection.query(queryText, atributeValues);
-    return games.rows;
+    if (!(await isCategoryIdValid(connection, categoryId))) {
+        console.log("AQUI 2!")
+        return false;
+    };
+    return true;
 }
 
 export {
-    areRawInputsValid,
     getGames,
+    areInputsValid,
 }
