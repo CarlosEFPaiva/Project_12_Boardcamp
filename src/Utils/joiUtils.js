@@ -43,8 +43,20 @@ function areCustomersInputsValid({name, phone, cpf, birthday}) {
     return !(schema.validate(testObject)).error;
 }
 
+function areRentalInputsValid(newRental) {
+    const schema = joi.object({
+        customerId: joi.number().integer().min(1).required(),
+        gameId: joi.number().integer().min(1).required(),
+        daysRented: joi.number().integer().min(1).required(),
+    })
+    return !(schema.validate(newRental)).error;
+}
+
+
+
 export {
     areGameInputsValid,
     isNewCategoryValid,
     areCustomersInputsValid,
+    areRentalInputsValid,
 }

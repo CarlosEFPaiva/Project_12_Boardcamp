@@ -16,7 +16,7 @@ async function getGames(connection, requiredData) {
     if (id || name) {
         queryText += " WHERE"
         if (id) {
-            queryText += " id = $1";
+            queryText += " games.id = $1";
             atributeValues.push(id);
         }
         if (name) {
