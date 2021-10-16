@@ -7,7 +7,10 @@ function capitalizeFirstLetters(title) {
     return capitalizedArray.join(" ");
 }
 
-async function isNewAtributeAvailable(connection, atributeName, atributeValue, getFunction) {
+async function isNewAtributeAvailable(connection, atributeName, atributeValue, getFunction, returnWholeArray) {
+    if (returnWholeArray) {
+        return (await getFunction( connection, Object.fromEntries([[atributeName,atributeValue]]) ));
+    }
     return (await getFunction( connection, Object.fromEntries([[atributeName,atributeValue]]) )).length === 0;
 }
 
