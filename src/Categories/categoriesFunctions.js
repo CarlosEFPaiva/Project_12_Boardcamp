@@ -1,5 +1,6 @@
-import { getCategories, insertNewCategory } from "./auxiliarFunctions.js"
-import { isNewNameAvailable } from "../sharedFunctions.js"
+import { getCategories, insertNewCategory } from "./auxCategoriesFucntions.js"
+import { isNewAtributeAvailable } from "../Utils/sharedFunctions.js"
+import { isNewCategoryValid } from "../Utils/joiUtils.js";
 
 async function sendCategories(connection, req, resp) {
     try {
@@ -12,11 +13,11 @@ async function sendCategories(connection, req, resp) {
 
 async function postCategories(connection, req, resp) {
     const newName = req.body.name;
-    if (!newName) {
+    if (!isNewCategoryValid(req.body)) {
         return resp.sendStatus(400);
     }
     try {
-        if ( !(await isNewNameAvailable(connection, newName, getCategories)) ) {
+        if ( !(await isNewAtributeAvailable(connection, "name", newName, getCategories)) ) {
             return resp.sendStatus(409);
         }
         await insertNewCategory(connection, newName);

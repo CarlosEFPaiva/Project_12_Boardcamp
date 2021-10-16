@@ -1,4 +1,4 @@
-import { capitalizeFirstLetters } from "../sharedFunctions.js"
+import { capitalizeFirstLetters } from "../Utils/sharedFunctions.js"
 
 async function getCategories(connection, requiredData) {
     let id,name;

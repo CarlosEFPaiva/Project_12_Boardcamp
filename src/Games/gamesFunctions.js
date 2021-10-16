@@ -1,5 +1,5 @@
-import { areInputsValid, getGames } from "./auxiliarFunctions.js";
-import { isNewNameAvailable, capitalizeFirstLetters} from "../sharedFunctions.js";
+import { areInputsValid, getGames } from "./auxGamesFunctions.js";
+import { isNewAtributeAvailable, capitalizeFirstLetters} from "../Utils/sharedFunctions.js";
 
 async function sendGames(connection, req, resp) {
    const requiredName = req.query.name;
@@ -24,7 +24,7 @@ async function postGames(connection, req, resp) {
         if (!(await areInputsValid(connection, req))) {
             return resp.sendStatus(400);
         }
-        if (!(await isNewNameAvailable(connection, name, getGames))) {
+        if (!(await isNewAtributeAvailable(connection, "name", name, getGames))) {
             return resp.sendStatus(409);
         };
         await connection.query(`INSERT INTO games ("name", "image", "stockTotal", "categoryId", "pricePerDay")` +
