@@ -102,8 +102,17 @@ async function setReturnDateAndDelayFee(connection, requiredRental) {
         ]);
 }
 
+async function deleteRentalFromDatabase(connection, rentalId) {
+    await connection.query(`
+    DELETE FROM rentals 
+    WHERE
+        id = $1;
+    `, [rentalId]);
+}
+
 export {
     getRental,
     checkInputsAndReturnRequiredGame,
     setReturnDateAndDelayFee,
+    deleteRentalFromDatabase,
 }

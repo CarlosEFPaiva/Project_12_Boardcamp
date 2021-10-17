@@ -1,4 +1,4 @@
-import { getRental, checkInputsAndReturnRequiredGame, setReturnDateAndDelayFee } from "./auxRentalFunctions.js";
+import { getRental, checkInputsAndReturnRequiredGame, setReturnDateAndDelayFee, deleteRentalFromDatabase } from "./auxRentalFunctions.js";
 
 async function sendRental(connection, req, resp) {
     const {
@@ -73,8 +73,27 @@ async function endRental(connection, req, resp) {
     }
 }
 
+async function deleteRental(connection, req, resp) {
+    const rentalId = req.params.id;
+    try {
+        const requiredRental = (await getRental(connection, {rentalId}))[0];
+        if (!requiredRental) {
+            return resp.sendStatus(404);
+        }
+        if (!!requiredRental.returnDate){
+            return resp.sendStatus(400);
+        }
+        await deleteRentalFromDatabase(connection, rentalId);
+        resp.sendStatus(200);
+    } catch (error) {
+        console.log(error);
+        resp.sendStatus(500);
+    }
+}
+
 export {
     sendRental,
     postRental,
     endRental,
+    deleteRental
 }
