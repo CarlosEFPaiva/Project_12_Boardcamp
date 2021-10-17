@@ -2,7 +2,7 @@ import { areRentalInputsValid } from "../Utils/joiUtils.js";
 import { getCustomers } from "../Customers/auxCustomersFunctions.js";
 import { getGames } from "../Games/auxGamesFunctions.js";
 
-async function getRental(connection, {customerId, gameId}) {
+async function getRental(connection, {rentalId, customerId, gameId}) {
     let queryText = `
     SELECT 
     rentals.*,
@@ -15,10 +15,14 @@ async function getRental(connection, {customerId, gameId}) {
     JOIN categories ON games."categoryId" = categories.id
     `;
     const atributeValues = [];
-    if (customerId || gameId) {
+    if (rentalId || customerId || gameId) {
         queryText += " WHERE"
+        if (rentalId) {
+            queryText += ` rentals."id" = $1`;
+            atributeValues.push(rentalId);
+        }
         if (customerId) {
-            queryText += ` "customerId" = $1`;
+            queryText += ` "customerId" = $${atributeValues.length + 1}`;
             atributeValues.push(customerId);
         }
         if (gameId) {
@@ -75,7 +79,31 @@ async function checkInputsAndReturnRequiredGame(connection, req) {
     return requiredGame ;
 }
 
+async function setReturnDateAndDelayFee(connection, requiredRental) {
+    const todaysDate = new Date();
+    const rentDate = new Date(requiredRental.rentDate);
+    const actualRentedDays = Math.abs(todaysDate.setHours(0,0,0,0) - rentDate) / (1000*3600*24) ;
+    const delayDays = actualRentedDays > requiredRental.daysRented ? actualRentedDays - requiredRental.daysRented : 0;
+    const pricePerDay = requiredRental.originalPrice / requiredRental.daysRented;
+    const delayFee = delayDays * pricePerDay;
+
+    await connection.query(`
+    UPDATE rentals 
+    SET
+        "returnDate" = $1,
+        "delayFee" = $2
+    WHERE
+        id = $3;
+        `,
+        [
+            `${todaysDate.getFullYear()}-${todaysDate.getMonth() + 1}-${todaysDate.getDate()}`,
+            delayFee,
+            requiredRental.id
+        ]);
+}
+
 export {
     getRental,
     checkInputsAndReturnRequiredGame,
+    setReturnDateAndDelayFee,
 }

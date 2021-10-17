@@ -1,4 +1,4 @@
-import { getRental, checkInputsAndReturnRequiredGame } from "./auxRentalFunctions.js";
+import { getRental, checkInputsAndReturnRequiredGame, setReturnDateAndDelayFee } from "./auxRentalFunctions.js";
 
 async function sendRental(connection, req, resp) {
     const {
@@ -53,10 +53,28 @@ async function postRental(connection, req, resp) {
         console.log(error);
         resp.sendStatus(500);
     }
+}
 
+async function endRental(connection, req, resp) {
+    const rentalId = req.params.id;
+    try {
+        const requiredRental = (await getRental(connection, {rentalId}))[0];
+        if (!requiredRental) {
+            return resp.sendStatus(404);
+        }
+        if (!!requiredRental.returnDate){
+            return resp.sendStatus(400);
+        }
+        await setReturnDateAndDelayFee(connection, requiredRental);
+        resp.sendStatus(200);
+    } catch (error) {
+        console.log(error);
+        resp.sendStatus(500);
+    }
 }
 
 export {
     sendRental,
     postRental,
+    endRental,
 }
