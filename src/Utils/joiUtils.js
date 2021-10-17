@@ -52,6 +52,25 @@ function areRentalInputsValid(newRental) {
     return !(schema.validate(newRental)).error;
 }
 
+function isValidDate(date) {
+    if( !date ) {
+        return false;
+    }
+    const [year,month,day] = date.split("-");
+    const monthLength = [31,28,31,30,31,30,31,31,30,31,30,31];
+    const testObject = {
+        year,
+        month,
+        day
+    };
+    const schema = joi.object({
+        year: joi.number().integer().min(1900),
+        month: joi.number().integer().min(1).max(12),
+        day: joi.number().integer().min(1).max(monthLength[Number(month) - 1])
+    });
+    return !(schema.validate(testObject)).error;
+}
+
 
 
 export {
@@ -59,4 +78,5 @@ export {
     isNewCategoryValid,
     areCustomersInputsValid,
     areRentalInputsValid,
+    isValidDate,
 }

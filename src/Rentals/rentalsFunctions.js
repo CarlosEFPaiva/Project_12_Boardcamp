@@ -1,12 +1,16 @@
 import { getRental, checkInputsAndReturnRequiredGame, setReturnDateAndDelayFee, deleteRentalFromDatabase } from "./auxRentalFunctions.js";
+import { isValidDate } from "../Utils/joiUtils.js";
 
 async function sendRental(connection, req, resp) {
     const {
-        customerId,
-        gameId
+        status,
+        startDate
     } = req.query;
+    if ( (!!status && status !== "open" && status !== "closed") || (!!startDate && !isValidDate(startDate))) {
+        return resp.sendStatus(400);
+    }
     try {
-        resp.send(await getRental(connection, {customerId, gameId}));
+        resp.send(await getRental(connection, req.query));
     } catch (error) {
         console.log(error);
         resp.sendStatus(500);

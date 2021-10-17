@@ -2,7 +2,7 @@ import { areRentalInputsValid } from "../Utils/joiUtils.js";
 import { getCustomers } from "../Customers/auxCustomersFunctions.js";
 import { getGames } from "../Games/auxGamesFunctions.js";
 
-async function getRental(connection, {rentalId, customerId, gameId}) {
+async function getRental(connection, {rentalId, customerId, gameId, status, startDate}) {
     let queryText = `
     SELECT 
     rentals.*,
@@ -15,7 +15,7 @@ async function getRental(connection, {rentalId, customerId, gameId}) {
     JOIN categories ON games."categoryId" = categories.id
     `;
     const atributeValues = [];
-    if (rentalId || customerId || gameId) {
+    if (rentalId || customerId || gameId || status === "open" || status === "closed" || startDate ) {
         queryText += " WHERE"
         if (rentalId) {
             queryText += ` rentals."id" = $1`;
@@ -28,6 +28,17 @@ async function getRental(connection, {rentalId, customerId, gameId}) {
         if (gameId) {
             queryText += ` "gameId" = $${atributeValues.length + 1}`;
             atributeValues.push(gameId);
+        }
+        if (status) {
+            if (status === "open") {
+                queryText += ` rentals."returnDate" IS NULL`;
+            } else {
+                queryText += ` rentals."returnDate" IS NOT NULL`;
+            }
+        }
+        if (startDate) {
+            queryText += ` "rentDate" >= $${atributeValues.length + 1}`;
+            atributeValues.push(startDate);
         }
     }
     queryText += ";"
